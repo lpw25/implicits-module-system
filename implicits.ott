@@ -1,0 +1,930 @@
+embed 
+ {{ tex-preamble \usepackage{bm} }}
+
+metavar termvar, x ::=
+metavar typevar, a ::=
+metavar modvar, X ::=
+metavar modtypevar, A ::=
+metavar stamp, i ::=
+
+grammar
+signature_items, SI :: 'sigi_' ::=
+  | type a i : ( as ) k   ::  :: Type
+      {{ tex \ottkw{type} \, {[[a]]}_{[[i]]} \, : \, ( [[as]] ) \, [[k]] }}
+  | val x i : t           ::  :: Value
+      {{ tex \ottkw{val} \, {[[x]]}_{[[i]]} \, : \, [[t]] }}
+  | module type A i : K   ::  :: ModType
+      {{ tex \ottkw{module} \; \ottkw{type} \, {[[A]]}_{[[i]]} \, : \, [[K]] }}
+  | module X i : T        ::  :: Module
+      {{ tex \ottkw{module} \, {[[X]]}_{[[i]]} \, : \, [[T]] }}
+  | SI Z                  :: M:: Subst
+  | SI / Ev               :: M:: Strengthen
+  | SI / .                :: M:: SelfStrengthen
+
+signatures, S :: 'sig_' ::=
+  | SI S                  ::  :: Cons
+  | end                   ::  :: Nil
+  | S Z                   :: M:: Subst
+  | S / Ev                :: M:: Strengthen
+
+definition_items, DI :: 'defi_' ::=
+  | type a i : ( as ) k   ::  :: Type
+      {{ tex \ottkw{type} \, {[[a]]}_{[[i]]} \, : \, ( [[as]] ) \, [[k]] }}
+  | val x i = e           ::  :: Value
+      {{ tex \ottkw{val} \, {[[x]]}_{[[i]]} \, = \, [[e]] }}
+  | module type A i : K   ::  :: ModType
+      {{ tex \ottkw{module} \; \ottkw{type} \, {[[A]]}_{[[i]]} \, : \, [[K]] }}
+  | module X i = E        ::  :: Module
+      {{ tex \ottkw{module} \, {[[X]]}_{[[i]]} \, = \, [[E]] }}
+  | DI Z                  :: M:: Subst
+
+definitions, D :: 'def_' ::=
+  | DI D                  ::  :: Cons
+  | end                   ::  :: Nil
+  | D Z                   :: M:: Subst
+  | Sv / Ev               :: M:: Eta
+
+parameter, P :: 'param_' ::=
+  | ( X i : T )           ::  :: Ordinary
+      {{ tex ( {[[X]]}_{[[i]]} : [[T]] ) }}
+  | { X i : T }           ::  :: Implicit
+      {{ tex \lbrace {[[X]]}_{[[i]]} : [[T]]\rbrace }}
+  | < X i : T >           ::  :: Inferred
+      {{ tex \langle{[[X]]}_{[[i]]} : [[T]]\rangle }}
+
+argument, R :: 'arg_' ::=
+  | ( Ev )                ::  :: Ordinary
+  | { Ev }                ::  :: Implicit
+  | < Ev >                ::  :: Inferred
+      {{ tex \langle[[Ev]]\rangle }}
+  | P                     :: M:: Param
+
+module_kinds, K :: 'mknd_' ::=
+  | l                     ::  :: Level
+  | = T : K               ::  :: Singleton
+      {{ tex \mathord{=} [[T]] : [[K]] }}
+  | K Z                   :: M:: Subst
+
+module_types, T :: 'mtyp_' ::=
+  | A i                   ::  :: Var
+     {{ tex {[[A]]}_{[[i]]} }}
+  | Ev . A                ::  :: Proj
+  | sig S                 ::  :: Sig
+  | functor P -> T'       ::  :: Functor
+      {{ tex \ottkw{functor} \, [[P]] \rightarrow [[T']] }}
+  | = Ev : T              ::  :: Singleton
+      {{ tex \mathord{=} [[Ev]] : [[T]] }}
+  | T Z                   :: M:: Subst
+  | T / Ev                :: M:: Strengthen
+
+module_expressions, E :: 'mexp_' ::=
+  | X i                   ::  :: Var
+      {{ tex {[[X]]}_{[[i]]} }}
+  | Ev . X                ::  :: Proj
+  | struct D              ::  :: Struct
+  | functor P -> E        ::  :: Functor
+      {{ tex \ottkw{functor} \, [[P]] \rightarrow [[E]] }}
+  | E R                   ::  :: Apply
+  | E : T                 ::  :: Ascription
+  | E Z                   :: M:: Subst
+  | ( E )                 :: S:: Paren
+
+type_params, as :: 'tparam_' ::=
+  | empty                 ::  :: Nil
+  | a i : k , as           ::  :: Cons
+      {{ tex {[[a]]}_{[[i]]} : [[k]] , \, [[as]] }}
+
+type_args, ts :: 'targ_' ::=
+  | empty                 ::  :: Nil
+  | t , ts                 ::  :: Cons
+
+kinds, k :: 'knd_' ::=
+  | = t : k               ::  :: Singleton
+      {{ tex \mathord{=} [[t]] : [[k]] }}
+  | ?                     ::  :: Other 
+  | k Z                   :: M:: Subst
+
+types, t :: 'typ_' ::=
+  | ( ts ) a i              ::  :: Var
+      {{ tex ( [[ts]] ) \, {[[a]]}_{[[i]]} }}
+  | ( ts ) Ev . a           ::  :: Proj
+      {{ tex ( [[ts]] ) \, [[Ev]] . [[a]]  }}
+  | ?                     ::  :: Other
+  | t Z                   :: M:: Subst
+
+expressions, e :: 'exp_' ::=
+  | x i                   ::  :: Var
+      {{ tex {[[x]]}_{[[i]]} }}
+  | Ev . x                ::  :: Proj
+  | ?                     ::  :: Other
+  | e Z                   :: M:: Subst
+
+level, l :: 'level_' ::=
+  | zero                  ::  :: Zero
+      {{ tex z }}
+  | succ ( l )            ::  :: Succ
+      {{ tex s([[l]]) }}
+  | max ( l , l' )        ::  S:: Max
+      {{ tex max([[l]], \, [[l']]) }}
+
+signature_value_items, SIv {{ tex {SI_v} }} :: 'sigi_val_' ::=
+  | type a i : ( as ) k   ::  :: Type
+      {{ tex \ottkw{type} \, {[[a]]}_{[[i]]} \, : \, ( [[as]] ) \, [[k]] }}
+  | module type A i : K   ::  :: ModType
+      {{ tex \ottkw{module} \; \ottkw{type} \, {[[A]]}_{[[i]]} \, : \, [[K]] }}
+  | module X i : T        ::  :: Module
+      {{ tex \ottkw{module} \, {[[X]]}_{[[i]]} \, : \, [[T]] }}
+  | SI Z                  :: M:: Subst
+
+signature_values, Sv {{ tex {S_v} }} :: 'sig_val_' ::=
+  | SIv Sv                ::  :: Cons
+  | end                   ::  :: Nil
+  | Sv Z                  :: M:: Subst
+
+definition_value_items, DIv {{ tex {DI_v} }} :: 'defi_val_' ::=
+  | type a i : ( as ) kv  ::  :: Type
+      {{ tex \ottkw{type} \, {[[a]]}_{[[i]]} \, : \, ( [[as]] ) \, [[kv]] }}
+  | module type A i : Kv  ::  :: ModType
+      {{ tex \ottkw{module} \; \ottkw{type} \, {[[A]]}_{[[i]]} \, : \, [[Kv]] }}
+  | module X i = Ev       ::  :: Module
+      {{ tex \ottkw{module} \, {[[X]]}_{[[i]]} \, = \, [[Ev]] }}
+  | DIv Z                 :: M:: Subst
+
+definition_values, Dv {{ tex {D_v} }} :: 'def_val_' ::=
+  | DIv Dv                ::  :: Cons
+  | end                   ::  :: Nil
+  | Dv Z                  :: M:: Subst
+  | Sv / Ev               :: M:: Eta
+
+module_kind_values, Kv {{ tex {K_v} }} :: 'mknd_val_' ::=
+  | = T : K               ::  :: Singleton
+      {{ tex \mathord{=} [[T]] : [[K]] }}
+  | Kv Z                  :: M:: Subst
+
+module_expression_values, Ev {{ tex {E_v} }} :: 'mexp_val_' ::=
+  | X i                   ::  :: Var
+      {{ tex {[[X]]}_{[[i]]} }}
+  | Ev . X                ::  :: Proj
+  | struct Dv             ::  :: Struct
+  | functor P -> Ev       ::  :: Functor
+      {{ tex \ottkw{functor} \, [[P]] \rightarrow [[Ev]] }}
+  | Ev R                  ::  :: Apply
+  | Ev Z                  :: M:: Subst
+  | ( Ev )                :: S:: Paren
+
+kind_values, kv {{ tex {k_v} }} :: 'knd_val_' ::=
+  | = t : k               ::  :: Singleton
+      {{ tex \mathord{=} [[t]] : [[k]] }}
+  | kv Z                  :: M:: Subst
+
+substitution, Z {{ tex \sigma }} :: 'sub_' ::=
+  | [ a i => ( as ) t ]     ::  :: Type
+     {{ tex [ {[[a]]}_{[[i]]} \mapsto ( [[as]] ) \, [[t]] ] }}
+  | [ as => ts ]          :: M:: TypeParams
+     {{ tex [ [[as]] \mapsto [[ts]] ] }}
+  | [ A i => T ]          ::  :: ModType
+     {{ tex [ {[[A]]}_{[[i]]} \mapsto [[T]] ] }}
+  | [ X i => Ev ]         ::  :: Module
+     {{ tex [ {[[X]]}_{[[i]]} \mapsto [[Ev]] ] }}
+  | [ SI => SI' ]         :: M:: SigItem
+     {{ tex [ [[SI]] \mapsto [[SI']] ] }}
+  | [ P => R ]            :: M:: Parameter
+     {{ tex [ [[P]] \mapsto [[R]] ] }}
+
+context, G {{ tex \Gamma }} :: 'ctx_' ::=
+  | empty                 ::   :: Empty
+  | G , a i : ( as ) k    ::  :: Type
+     {{ tex [[G]] , \, {[[a]]}_{[[i]]} : ( [[as]] ) \, [[k]] }}
+  | G , as                :: M:: TypeParams
+  | G , x i : t           ::  :: Value
+     {{ tex [[G]] , \, {[[x]]}_{[[i]]} : [[t]] }}
+  | G , A i : K           ::  :: ModType
+     {{ tex [[G]] , \, {[[A]]}_{[[i]]} : [[K]] }}
+  | G , X i : T           ::  :: Module
+     {{ tex [[G]] , \, {[[X]]}_{[[i]]} : [[T]] }}
+  | G , SI                :: M:: SigItem 
+  | G , S                 :: M:: Signature
+  | G , P                 :: M:: Parameter 
+
+formula :: formula_ ::=  
+  | judgement             ::   :: judgement
+  | a i : ( as ) k in G   ::   :: type_in
+      {{ tex {[[a]]}_{[[i]]} : ( [[as]] ) \, [[k]] \in [[G]] }}
+  | x i : t in G          ::   :: value_in
+      {{ tex {[[x]]}_{[[i]]} : [[t]] \in [[G]] }}
+  | A i : K in G          ::   :: modtype_in
+      {{ tex {[[A]]}_{[[i]]} : [[K]] \in [[G]] }}
+  | X i : T in G          ::   :: module_in
+      {{ tex {[[X]]}_{[[i]]} : [[T]] \in [[G]] }}
+  | SI notin S            ::   :: sig_item_not_in
+  | i notin G             ::   :: internal_not_in
+
+terminals :: 'terminals_' ::=
+  | notin                 ::  :: notin       {{ tex \notin }}
+  | in                    ::  :: in          {{ tex \in }}
+  | |-                    ::  :: turnstile   {{ tex \bm\vdash }}
+  | empty                 ::  :: empty       {{ tex \varepsilon }}
+  | :-                    ::  :: bcolon      {{ tex \bm: }}
+  | ==                    ::  :: bequals     {{ tex \bm= }}
+  | <                     ::  :: subtype     {{ tex \bm< }}
+
+subrules
+  definition_value_items <:: definition_items
+  definition_values <:: definitions
+  module_kind_values <:: module_kinds
+  module_expression_values <:: module_expressions
+  kind_values <:: kinds
+  signature_value_items <:: signature_items
+  signature_values <:: signatures
+
+defns
+Typing :: '' ::=
+
+  defn
+  |- G :: :: context :: 'ctx_' by
+
+    ---------- :: empty
+     |- empty
+
+     i notin G
+     G, as |- k
+    --------------------- :: type
+     |- G , a i : (as) k
+
+     i notin G
+     G |- t :- ?
+    ---------------- :: value
+     |- G , x i : t
+
+     i notin G
+     G |- K
+    ---------------- :: modtype
+     |- G , A i : K
+
+     i notin G
+     G |- T :- K
+    ---------------- :: module
+     |- G , X i : T
+
+  defn
+  G |- k :: :: kind :: 'knd_' by
+
+     |- G
+    -------- :: other
+     G |- ?   
+
+     G |- t :- k
+    -------------- :: singleton_kind
+     G |- = t : k
+
+  defn
+  G |- K :: :: modkind :: 'mknd_' by
+
+     |- G
+    -------- :: level
+     G |- l
+
+     G |- T :- K
+    -------------- :: singleton_kind
+     G |- = T : K
+
+  defn
+  G |- t :- k :: :: typ :: 'typ_' by
+
+     a i : (as) k in G
+     G |- ts :- as
+    --------------------------------- :: var
+     G |- (ts) a i :- k [ as => ts ]
+
+     G |- Ev :- sig type a i : (as) k end
+     G |- ts :- as
+    -------------------------------------- :: proj
+     G |- (ts) Ev . a :- k [ as => ts ]
+
+     |- G
+    ------------- :: other
+     G |- ? :- ?
+
+     G |- t :- k
+    ------------------- :: singleton
+     G |- t :- = t : k
+
+     G |- t :- k1
+     G |- k1 < k2
+    -------------- :: subsumption
+     G |- t :- k2
+
+  defn
+  G |- ts :- as :: :: typs :: 'typs_' by
+
+     |- G
+    --------------------- :: nil
+     G |- empty :- empty
+
+     G |- t :- k
+     G |- ts :- as
+    --------------------------- :: cons
+     G |- t, ts :- a i : k, as
+
+  defn
+  G |- SI :- l :: :: sigitem :: 'sitem_' by
+
+     G, as |- k
+    -------------------------------- :: type
+     G |- type a i : (as) k :- zero
+
+     G |- t :- ?
+    -------------------------- :: value
+     G |- val x i : t :- zero
+
+     G |- K
+     G |- K < l
+    ------------------------------- :: modtype
+     G |- module type A i : K :- l
+
+     G |- T :- K
+     G |- K < l
+    -------------------------- :: module
+     G |- module X i : T :- l
+
+  defn
+  G |- S :- l :: :: sig :: 'sig_' by
+
+     |- G
+    ------------------ :: empty
+     G |- end :- zero
+
+     SI notin S
+     G |- SI :- l
+     G, SI |- S :- l'
+    ------------------------- :: cons
+     G |- SI S :- max(l, l')
+
+  defn
+  G |- P :- l :: :: param :: 'param_' by
+
+     G |- T :- l
+    ----------------------- :: ordinary
+     G |- ( X i : T ) :- l
+
+     G |- T :- l
+    ----------------------- :: implicit
+     G |- { X i : T } :- l
+
+     G |- T :- l
+    ----------------------- :: inferred
+     G |- < X i : T > :- l
+
+  defn
+  G |- T :- K :: :: mtyp :: 'mtyp_' by
+
+     G |- S :- l
+    ----------------------- :: signature
+     G |- sig S :- succ(l)
+
+     G |- P :- l
+     G, P |- T :- l'
+    ----------------------------------- :: functor
+     G |- functor P -> T :- max(l, l')
+
+     A i : K in G
+    --------------- :: var
+     G |- A i :- K
+
+     G |- Ev :- sig module type A i : K end
+    ---------------------------------------- :: proj
+     G |- Ev . A :- K
+
+     G |- Ev :- T
+     G |- T :- K
+    -------------------- :: singleton_type
+     G |- = Ev : T :- K
+
+     G |- T :- K
+    ------------------- :: singleton
+     G |- T :- = T : K
+
+     G |- T :- K1
+     G |- K1 < K2
+    -------------- :: subsumption
+     G |- T :- K2
+
+  defn
+  G |- e :- t :: :: expr :: 'expr_' by
+
+     x i : t in G
+    --------------- :: var
+     G |- x i :- t
+
+     G |- Ev :- sig val x i : t end
+    -------------------------------- :: proj
+     G |- Ev . x :- t
+
+     |- G
+    ------------- :: other
+     G |- ? :- ?
+
+  defn
+  G |- DI :- SI :: :: defitem :: 'ditem_' by
+
+     G, as |- k
+    --------------------------------------------- :: type
+     G |- type a i : (as) k :- type a i : (as) k
+
+     G |- e :- t
+    --------------------------------- :: value
+     G |- val x i = e :- val x i : t
+
+     G |- K
+    ------------------------------------------------- :: modtype
+     G |- module type A i : K :- module type A i : K
+
+     G |- E :- T 
+    --------------------------------------- :: module
+     G |- module X i = E :- module X i : T
+
+  defn
+  G |- D :- S :: :: def :: 'def_' by
+
+     |- G
+    ----------------- :: empty
+     G |- end :- end
+
+     G |- DI :- SI
+     G, SI |- D :- S
+    ------------------- :: cons
+     G |- DI D :- SI S
+
+  defn
+  G |- R :- P :: :: arg :: 'arg_' by
+
+     G |- Ev :- T
+    ---------------------------- :: ordinary
+     G |- ( Ev ) :- ( X i : T )
+
+     G |- Ev :- T
+    ---------------------------- :: implicit
+     G |- { Ev } :- { X i : T }
+
+     G |- Ev :- T
+    ---------------------------- :: inferred
+     G |- < Ev > :- < X i : T >
+
+  defn
+  G |- E :- T :: :: mexpr :: 'mexpr_' by
+
+     X i : T in G
+    --------------- :: var
+     G |- X i :- T
+
+     G |- Ev :- sig module X i : T end
+    ----------------------------------- :: proj
+     G |- Ev . X :- T
+
+     G |- D :- S
+    ------------------------ :: structure
+     G |- struct D :- sig S
+
+     G |- P :- l
+     G , P |- E :- T
+    --------------------------------------- :: functor
+     G |- functor P -> E :- functor P -> T
+
+     G |- E :- functor P -> T
+     G |- R :- P
+    -------------------------- :: apply
+     G |- E R :- T [ P => R ]
+
+     G |- E :- T
+    ----------------- :: ascripe
+     G |- E : T :- T
+
+     G |- Ev :- T
+    --------------------- :: singleton
+     G |- Ev :- = Ev : T
+
+     G |- E :- T1
+     G |- T1 < T2 :- K
+    ------------------- :: subsumption
+     G |- E :- T2
+
+  defn
+  G |- k < k' :: :: sub_kind :: 'sub_knd_' by
+
+     G |- k
+    ------------ :: refl
+     G |- k < k
+
+     G |- k1 < k2
+     G |- k2 < k3
+    -------------- :: trans
+     G |- k1 < k3
+
+     G |- t1 == t2 :- k1
+     G |- k1 < k2
+    ---------------------------- :: singleton
+     G |- = t1 : k1 < = t2 : k2
+
+     G |- = t : k
+    ------------------ :: sub_singleton
+     G |- = t : k < k
+
+  defn
+  G |- K < K' :: :: sub_mkind :: 'sub_mknd_' by
+
+     G |- K
+    ------------ :: refl
+     G |- K < K
+
+     G |- K1 < K2
+     G |- K2 < K3
+    -------------- :: trans
+     G |- K1 < K3
+
+     G |- l
+    ------------------ :: successor
+     G |- l < succ(l)
+
+     G |- T1 == T2 :- K1
+     G |- K1 < K2
+    ---------------------------- :: singleton
+     G |- = T1 : K1 < = T2 : K2
+
+     G |- = T : K
+    ------------------ :: sub_singleton
+     G |- = T : K < K
+
+  defn
+  G |- t < t' :- k :: :: sub_type :: 'sub_typ_' by
+
+     G |- t1 == t2 :- k
+    -------------------- :: refl
+     G |- t1 < t2 :- k
+
+     G |- t1 < t2 :- k
+     G |- t2 < t3 :- k
+    ------------------- :: trans
+     G |- t1 < t3 :- k
+
+  defn
+  G |- SI < SI' :- l :: :: sub_sigitem :: 'sub_sitem_' by
+
+     G |- SI1 == SI2 :- l
+    ---------------------- :: refl
+     G |- SI1 < SI2 :- l
+
+     G, as |- k1 < k2
+    ------------------------------------------------------ :: type
+     G |- type a i : (as) k1 < type a i : (as) k2 :- zero
+
+     G |- t1 < t2 :- ?
+    ------------------------------------------ :: value
+     G |- val x i : t1 < val x i : t2 :- zero
+
+     G |- K1 < K2
+     G |- K1 < l
+    ------------------------------------------------------- :: modtype
+     G |- module type A i : K1 < module type A i : K2 :- l
+
+     G |- T1 < T2 :- K
+     G |- K < l
+    --------------------------------------------- :: module
+     G |- module X i : T1 < module X i : T2 :- l
+
+  defn
+  G |- S < SI at SI' :- l :: :: sub_sig_with_item :: 'sub_sig_sitem' by
+
+     SI1 notin S1
+     G |- S1 :- l
+     G |- SI1 / . < SI2 :- l'
+    ---------------------------------------- :: cons_match
+     G |- SI1 S1 < SI2 at SI1 :- max(l, l')
+
+     SI1 notin S1
+     G |- S1 < SI2 at SI1' :- l
+     G |- SI1 :- l'
+    ----------------------------------------- :: cons_not_match
+     G |- SI1 S1 < SI2 at SI1' :- max(l, l')
+
+  defn
+  G |- S < S' :- l :: :: sub_sig :: 'sub_sig_' by
+
+     G |- S1 == S2 :- l
+    -------------------- :: refl
+     G |- S1 < S2 :- l
+
+     G |- S1 < S2 :- l
+     G |- S2 < S3 :- l
+    ------------------- :: trans
+     G |- S1 < S3 :- l
+
+     G |- S :- l
+    ------------------- :: empty
+     G |- S < end :- l
+
+     SI2 notin S2
+     G |- S1 < S2 [SI2 => SI1] :- l
+     G, S1 |- S1 < SI2 at SI1 :- l'
+    -------------------------------- :: cons
+     G |- S1 < SI2 S2 :- max(l, l')
+
+  defn
+  G |- P < P' :- l :: :: sub_param :: 'sub_param_' by
+
+     G |- P1 == P2 :- l
+    -------------------- :: refl
+     G |- P1 < P2 :- l
+
+     G |- T1 < T2 :- l
+    --------------------------------------- :: ordinary
+     G |- ( X i : T1 ) < ( X i : T2 ) :- l
+
+     G |- T1 < T2 :- l
+    --------------------------------------- :: implicit
+     G |- { X i : T1 } < { X i : T2 } :- l
+
+     G |- T1 < T2 :- l
+    --------------------------------------- :: inferred
+     G |- < X i : T1 > < < X i : T2 > :- l
+
+  defn
+  G |- T < T' :- K :: :: sub_mtyp :: 'sub_mtyp_' by
+
+     G |- T1 == T2 :- K
+    -------------------- :: refl
+     G |- T1 < T2 :- K
+
+     G |- T1 < T2 :- K
+     G |- T2 < T3 :- K
+    ------------------- :: trans
+     G |- T1 < T3 :- K
+
+     G |- S1 < S2 :- l
+    --------------------------------- :: signature
+     G |- sig S1 < sig S2 :- succ(l)
+
+     G |- P2 < P1 :- l
+     G, P2 |- T1 [P1 => P2] < T2 :- l'
+    -------------------------------------------------------- :: functor
+     G |- functor P1 -> T1 < functor P2 -> T2 :- max(l, l')
+
+     G |- Ev1 == Ev2 :- T1
+     G |- T1 < T2 :- K
+    ----------------------------------- :: singleton
+     G |- = Ev1 : T1 < = Ev2 : T2 :- K
+
+     G |- = Ev : T :- K
+    ----------------------------- :: sub_singleton
+     G |- = Ev : T < T / Ev :- K
+
+  defn
+  G |- k == k' :: :: equal_kind :: 'eql_knd_' by
+
+     G |- k
+    ------------- :: refl
+     G |- k == k
+
+     G |- k1 == k2
+     G |- k2 == k3
+    --------------- :: trans
+     G |- k1 == k3
+
+     G |- t1 == t2 :- k1
+     G |- k1 == k2
+    ----------------------------- :: singleton
+     G |- = t1 : k1 == = t2 : k2
+
+  defn
+  G |- t == t' :- k :: :: equal_type :: 'eql_typ_' by
+
+     G |- t1 :- = t2 : k
+    --------------------- :: singleton
+     G |- t1 == t2 :- k
+
+     G |- t1 == t2 :- k
+     G |- t2 == t3 :- k
+    -------------------- :: trans
+     G |- t1 == t3 :- k
+
+     G |- Ev1 == Ev2 :- sig type a i : (as) k end
+     G |- ts :- as
+    ----------------------------------------------------- :: proj
+     G |- (ts) Ev1 . a == (ts) Ev2 . a :- k [ as => ts ]
+
+  defn
+  G |- K == K' :: :: equal_mkind :: 'eql_mknd_' by
+
+     G |- K
+    ------------- :: refl
+     G |- K == K
+
+     G |- K1 == K2
+     G |- K2 == K3
+    --------------- :: trans
+     G |- K1 == K3
+
+     G |- T1 == T2 :- K1
+     G |- K1 == K2
+    ----------------------------- :: singleton
+     G |- = T1 : K1 == = T2 : K2
+
+  defn
+  G |- SI == SI' :- l :: :: equal_sigitem :: 'eql_sitem_' by
+
+     G, as |- k1 == k2
+    --------------------------------------------------------- :: type
+     G |- type a i1 : (as) k1 == type a i2 : (as) k2 :- zero
+
+     G |- t1 == t2 :- ?
+    --------------------------------------------- :: value
+     G |- val x i1 : t1 == val x i2 : t2 :- zero
+
+     G |- K1 == K2
+     G |- K1 < l
+    ---------------------------------------------------------- :: modtype
+     G |- module type A i1 : K1 == module type A i2 : K2 :- l
+
+     G |- T1 == T2 :- K
+     G |- K < l
+    ------------------------------------------------ :: module
+     G |- module X i1 : T1 == module X i2 : T2 :- l
+
+  defn
+  G |- S == S' :- l :: :: equal_sig :: 'eql_sig_' by
+
+     G |- S :- l
+    ------------------ :: refl
+     G |- S == S :- l
+
+     G |- S1 == S2 :- l
+     G |- S2 == S3 :- l
+    -------------------- :: trans
+     G |- S1 == S3 :- l
+
+     SI1 notin S1
+     G |- SI1 == SI2 :- l
+     G, SI1 |- S1 == S2 [SI2 => SI1] :- l'
+    --------------------------------------- :: cons
+     G |- SI1 S1 == SI2 S2 :- max(l, l')
+
+  defn
+  G |- P == P' :- l :: :: equal_param :: 'eql_param_' by
+
+     G |- T1 == T2 :- l
+    -------------------------------------------- :: ordinary
+     G |- ( X1 i1 : T1 ) == ( X2 i2 : T2 ) :- l
+
+     G |- T1 == T2 :- l
+    -------------------------------------------- :: implicit
+     G |- { X1 i1 : T1 } == { X2 i2 : T2 } :- l
+
+     G |- T1 == T2 :- l
+    -------------------------------------------- :: inferred
+     G |- < X1 i1 : T1 > == < X2 i2 : T2 > :- l
+
+  defn
+  G |- T == T' :- K :: :: equal_mtyp :: 'eql_mtyp_' by
+
+     G |- T1 :- = T2 : K
+    --------------------- :: singleton
+     G |- T1 == T2 :- K
+
+     G |- T1 == T2 :- K
+     G |- T2 == T3 :- K
+    -------------------- :: trans
+     G |- T1 == T3 :- K
+
+     G |- S1 == S2 :- l
+    ---------------------------------- :: signature
+     G |- sig S1 == sig S2 :- succ(l)
+
+     G |- P1 == P2 :- l
+     G, P2 |- T1 [P1 => P2] == T2 :- l'
+    --------------------------------------------------------- :: functor
+     G |- functor P1 -> T1 == functor P2 -> T2 :- max(l, l')
+
+     G |- Ev1 == Ev2 :- sig module type A i : K end
+    ------------------------------------------------ :: proj
+     G |- Ev1 . A == Ev2 . A :- K
+
+     G |- Ev1 == Ev2 :- T
+     G |- T1 == T2 :- K
+    ------------------------------------ :: singleton_type
+     G |- = Ev1 : T1 == = Ev2 : T2 :- K
+
+  defn
+  G |- DIv == DIv' :- SI :: :: equal_defitem :: 'eql_ditem_' by
+
+     G, as |- kv1 == kv2
+    ------------------------------------------------------------------------ :: type
+     G |- type a i : (as) kv1 == type a i : (as) kv2 :- type a i : (as) kv1
+
+     G |- Kv1 == Kv2
+    ------------------------------------------------------------------------------ :: modtype
+     G |- module type A i : Kv1 == module type A i : Kv1 :- module type A i : Kv1
+
+     G |- Ev1 == Ev2 :- T 
+    ------------------------------------------------------------- :: module
+     G |- module X i = Ev1 == module X i = Ev2 :- module X i : T
+
+  defn
+  G |- Dv == Dv' :- Sv :: :: equal_def :: 'eql_def_' by
+
+     G |- Dv :- Sv
+    --------------------- :: refl
+     G |- Dv == Dv :- Sv
+
+     G |- Dv1 == Dv2 :- Sv
+     G |- Dv2 == Dv3 :- Sv
+    ----------------------- :: trans
+     G |- Dv1 == Dv3 :- Sv
+
+     G |- DIv1 == DIv2 :- SIv
+     G, SI |- Dv1 == Dv2 :- Sv
+    ------------------------------------- :: cons
+     G |- DIv1 Dv1 == DIv2 Dv2 :- SIv Sv
+
+  defn
+  G |- R == R' :- P :: :: equal_arg :: 'eql_arg_' by
+
+     G |- Ev1 == Ev2 :- T
+    ---------------------------------------- :: ordinary
+     G |- ( Ev1 ) == ( Ev2 ) :- ( X i : T )
+
+     G |- Ev1 == Ev2 :- T
+    ---------------------------------------- :: implicit
+     G |- { Ev1 } == { Ev2 } :- { X i : T }
+
+     G |- Ev1 == Ev2 :- T
+    ---------------------------------------- :: inferred
+     G |- < Ev1 > == < Ev2 > :- < X i : T >
+
+  defn
+  G |- Dv projects X at Ev : T :: :: project_module :: 'proj_mod_' by
+
+     G, X i : = Ev : T |- Dv :- Sv
+     G |- Ev :- T
+    ---------------------------------------------- :: match_module
+     G |- module X i = Ev Dv projects X at Ev : T
+
+     G, SIv |- Dv projects X at Ev : T
+     G |- module X' i = Ev :- SIv
+    ----------------------------------------------------------------------- :: not_match_module
+     G |- module X' i = Ev Dv projects X at Ev [X i => Ev] : T [X i => Ev]
+
+     G, SIv |- Dv projects X at Ev : T
+     G |- type a i : (as) = t : k :- SIv
+    -------------------------------------------------------------------------------------- :: not_match_type
+     G |- type a i : (as) = t : k Dv projects X at Ev [a i => (as) t] : T [a i => (as) t]
+
+     G, SIv |- Dv projects X at Ev : T
+     G |- module type A i : = T : K :- SIv
+    ------------------------------------------------------------------------------ :: not_match_modtype
+     G |- module type A i : = T : K Dv projects X at Ev [A i => T] : T [A i => T]
+
+  defn
+  G |- Ev == Ev' :- T :: :: equal_mexpr :: 'eql_expr_' by
+
+     G |- Ev1 :- = Ev2 : T
+    ----------------------- :: singleton
+     G |- Ev1 == Ev2 :- T
+
+     G |- Ev1 == Ev2 :- T
+     G |- Ev2 == Ev3 :- T
+    ---------------------- :: trans
+     G |- Ev1 == Ev3 :- T
+
+     G |- Ev1 == Ev2 :- sig module X i : T end
+    ------------------------------------------- :: proj
+     G |- Ev1 . X == Ev2 . X :- T
+
+     G |- Dv1 == Dv2 :- Sv
+    ----------------------------------------- :: structure
+     G |- struct Dv1 == struct Dv2 :- sig Sv
+
+     G |- P1 == P2 :- l
+     G , P1 |- Ev1 == Ev2 :- T
+    ---------------------------------------------------------------- :: functor
+     G |- functor P1 -> Ev1 == functor P2 -> Ev2 :- functor P1 -> T
+
+     G |- Ev1 == Ev2 :- functor P -> T
+     G |- R1 == R2 :- P
+    ---------------------------------------- :: apply
+     G |- Ev1 R1 == Ev2 R2 :- T [ P => R1 ]
+
+     G , P |- Ev :- T
+     G |- R :- P
+    ----------------------------------------------------------- :: apply_beta
+     G |- (functor P -> Ev) R == Ev [ P => R ] :- T [ P => R ]
+
+     G |- Ev :- functor P -> T
+    -------------------------------------------------- :: functor_eta
+     G |- Ev == functor P -> (Ev P) :- functor P -> T
+
+     G |- Dv projects X at Ev : T
+    ------------------------------- :: proj_beta
+     G |- struct Dv . X == Ev :- T
+
+     G |- Ev :- sig Sv
+    ------------------------------------- :: struct_eta
+     G |- Ev == struct Sv / Ev :- sig Sv
