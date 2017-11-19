@@ -584,19 +584,20 @@ Typing :: '' ::=
      G |- module X i : T1 < module X i : T2 :- l
 
   defn
-  G |- S < SI at SI' :- l :: :: sub_sig_with_item :: 'sub_sig_sitem' by
+  G |- ( SI in S ) < SI' :- l :: :: sub_sig_with_item :: 'sub_sig_sitem'
+  by
 
      SI1 notin S1
      G |- S1 :- l
      G |- SI1 / . < SI2 :- l'
-    ---------------------------------------- :: cons_match
-     G |- SI1 S1 < SI2 at SI1 :- max(l, l')
+    ----------------------------------------- :: cons_match
+     G |- (SI1 in SI1 S1) < SI2 :- max(l, l')
 
      SI1 notin S1
-     G |- S1 < SI2 at SI1' :- l
+     G |- (SI3 in S1) < SI2 :- l
      G |- SI1 :- l'
-    ----------------------------------------- :: cons_not_match
-     G |- SI1 S1 < SI2 at SI1' :- max(l, l')
+    ------------------------------------------ :: cons_not_match
+     G |- (SI3 in SI1 S1) < SI2 :- max(l, l')
 
   defn
   G |- S < S' :- l :: :: sub_sig :: 'sub_sig_' by
@@ -616,7 +617,7 @@ Typing :: '' ::=
 
      SI2 notin S2
      G |- S1 < S2 [SI2 => SI1] :- l
-     G, S1 |- S1 < SI2 at SI1 :- l'
+     G, S1 |- (SI1 in S1) < SI2 :- l'
     -------------------------------- :: cons
      G |- S1 < SI2 S2 :- max(l, l')
 
