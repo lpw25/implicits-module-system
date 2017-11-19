@@ -50,19 +50,21 @@ definitions, D :: 'def_' ::=
   | D Z                   :: M:: Subst
   | Sv / Ev               :: M:: Eta
 
+parameter_mode, m :: 'pmode_' ::=
+  | ordinary              ::  :: Ordinary
+    {{ tex \ottkw{ord} }}
+  | implicit              ::  :: Implicit
+    {{ tex \ottkw{impl} }}
+  | inferred              ::  :: Inferred
+    {{ tex \ottkw{inf} }}
+
 parameter, P :: 'param_' ::=
-  | ( X i : T )           ::  :: Ordinary
-      {{ tex ( {[[X]]}_{[[i]]} : [[T]] ) }}
-  | { X i : T }           ::  :: Implicit
-      {{ tex \lbrace {[[X]]}_{[[i]]} : [[T]]\rbrace }}
-  | < X i : T >           ::  :: Inferred
-      {{ tex \langle{[[X]]}_{[[i]]} : [[T]]\rangle }}
+  | ( X i : m T )           ::  :: Parameter
+    {{ tex ( {[[X]]}_{[[i]]} :_{[[m]]} [[T]] ) }}
 
 argument, R :: 'arg_' ::=
-  | ( Ev )                ::  :: Ordinary
-  | { Ev }                ::  :: Implicit
-  | < Ev >                ::  :: Inferred
-      {{ tex \langle[[Ev]]\rangle }}
+  | m Ev                  ::  :: Argument
+    {{ tex [[ m ]]( [[ Ev ]] ) }}
   | P                     :: M:: Param
 
 module_kinds, K :: 'mknd_' ::=
@@ -370,16 +372,8 @@ Typing :: '' ::=
   G |- P :- l :: :: param :: 'param_' by
 
      G |- T :- l
-    ----------------------- :: ordinary
-     G |- ( X i : T ) :- l
-
-     G |- T :- l
-    ----------------------- :: implicit
-     G |- { X i : T } :- l
-
-     G |- T :- l
-    ----------------------- :: inferred
-     G |- < X i : T > :- l
+    ----------------------- :: parameter
+     G |- ( X i : m T ) :- l
 
   defn
   G |- T :- K :: :: mtyp :: 'mtyp_' by
@@ -465,16 +459,8 @@ Typing :: '' ::=
   G |- R :- P :: :: arg :: 'arg_' by
 
      G |- Ev :- T
-    ---------------------------- :: ordinary
-     G |- ( Ev ) :- ( X i : T )
-
-     G |- Ev :- T
-    ---------------------------- :: implicit
-     G |- { Ev } :- { X i : T }
-
-     G |- Ev :- T
-    ---------------------------- :: inferred
-     G |- < Ev > :- < X i : T >
+    ------------------------------- :: param
+     G |- m Ev :- ( X i : m T )
 
   defn
   G |- E :- T :: :: mexpr :: 'mexpr_' by
@@ -642,16 +628,8 @@ Typing :: '' ::=
      G |- P1 < P2 :- l
 
      G |- T1 < T2 :- l
-    --------------------------------------- :: ordinary
-     G |- ( X i : T1 ) < ( X i : T2 ) :- l
-
-     G |- T1 < T2 :- l
-    --------------------------------------- :: implicit
-     G |- { X i : T1 } < { X i : T2 } :- l
-
-     G |- T1 < T2 :- l
-    --------------------------------------- :: inferred
-     G |- < X i : T1 > < < X i : T2 > :- l
+    ------------------------------------------ :: param
+     G |- ( X i : m T1 ) < ( X i : m T2 ) :- l
 
   defn
   G |- T < T' :- K :: :: sub_mtyp :: 'sub_mtyp_' by
@@ -777,16 +755,8 @@ Typing :: '' ::=
   G |- P == P' :- l :: :: equal_param :: 'eql_param_' by
 
      G |- T1 == T2 :- l
-    -------------------------------------------- :: ordinary
-     G |- ( X1 i1 : T1 ) == ( X2 i2 : T2 ) :- l
-
-     G |- T1 == T2 :- l
-    -------------------------------------------- :: implicit
-     G |- { X1 i1 : T1 } == { X2 i2 : T2 } :- l
-
-     G |- T1 == T2 :- l
-    -------------------------------------------- :: inferred
-     G |- < X1 i1 : T1 > == < X2 i2 : T2 > :- l
+    ----------------------------------------------- :: param
+     G |- ( X1 i1 : m T1 ) == ( X2 i2 : m T2 ) :- l
 
   defn
   G |- T == T' :- K :: :: equal_mtyp :: 'eql_mtyp_' by
@@ -854,16 +824,8 @@ Typing :: '' ::=
   G |- R == R' :- P :: :: equal_arg :: 'eql_arg_' by
 
      G |- Ev1 == Ev2 :- T
-    ---------------------------------------- :: ordinary
-     G |- ( Ev1 ) == ( Ev2 ) :- ( X i : T )
-
-     G |- Ev1 == Ev2 :- T
-    ---------------------------------------- :: implicit
-     G |- { Ev1 } == { Ev2 } :- { X i : T }
-
-     G |- Ev1 == Ev2 :- T
-    ---------------------------------------- :: inferred
-     G |- < Ev1 > == < Ev2 > :- < X i : T >
+    --------------------------------------- :: param
+     G |- m Ev1 == m Ev2 :- ( X i : m T )
 
   defn
   G |- Dv projects X at Ev : T :: :: project_module :: 'proj_mod_' by
