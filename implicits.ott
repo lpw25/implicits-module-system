@@ -226,7 +226,7 @@ terminals :: 'terminals_' ::=
   | empty                 ::  :: empty       {{ tex \varepsilon }}
   | :-                    ::  :: bcolon      {{ tex \bm: }}
   | ==                    ::  :: bequals     {{ tex \bm= }}
-  | <                     ::  :: subtype     {{ tex \bm< }}
+  | <                     ::  :: subtype     {{ tex \bm\leqslant }}
 
 subrules
   definition_value_items <:: definition_items
