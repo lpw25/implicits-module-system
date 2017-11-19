@@ -1,5 +1,11 @@
-embed 
- {{ tex-preamble \usepackage{bm} }}
+embed {{ tex-preamble
+  \usepackage{bm}
+  \usepackage{mathpartir}
+  \renewcommand{\ottusedrule}[1]{#1 \and}
+  \renewenvironment{ottdefnblock}[3][]
+  { \framebox{ \mbox{#2} } \quad \begin{mathpar}#3 }
+  { \end{mathpar} }
+}}
 
 metavar termvar, x ::=
 metavar typevar, a ::=
