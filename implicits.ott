@@ -58,15 +58,6 @@ parameter_mode, m :: 'pmode_' ::=
   | inferred              ::  :: Inferred
     {{ tex \ottkw{inf} }}
 
-parameter, P :: 'param_' ::=
-  | ( X i : m T )           ::  :: Parameter
-    {{ tex ( {[[X]]}_{[[i]]} :_{[[m]]} [[T]] ) }}
-
-argument, R :: 'arg_' ::=
-  | m Ev                  ::  :: Argument
-    {{ tex [[ m ]]( [[ Ev ]] ) }}
-  | P                     :: M:: Param
-
 module_kinds, K :: 'mknd_' ::=
   | l                     ::  :: Level
   | = T : K               ::  :: Singleton
@@ -76,26 +67,27 @@ module_kinds, K :: 'mknd_' ::=
 module_types, T :: 'mtyp_' ::=
   | A i                   ::  :: Var
      {{ tex {[[A]]}_{[[i]]} }}
-  | Ev . A                ::  :: Proj
-  | sig S                 ::  :: Sig
-  | functor P -> T'       ::  :: Functor
-      {{ tex \ottkw{functor} \, [[P]] \rightarrow [[T']] }}
-  | = Ev : T              ::  :: Singleton
+  | Ev . A                      ::  :: Proj
+  | sig S                       ::  :: Sig
+  | functor ( m X i : T ) -> T'  ::  :: Functor
+      {{ tex \ottkw{functor} \, (_{[[m]]} {[[X]]}_{[[i]]} : [[T]] ) \rightarrow [[T']] }}
+  | = Ev : T                    ::  :: Singleton
       {{ tex \mathord{=} [[Ev]] : [[T]] }}
-  | T Z                   :: M:: Subst
-  | T / Ev                :: M:: Strengthen
+  | T Z                         :: M:: Subst
+  | T / Ev                      :: M:: Strengthen
 
 module_expressions, E :: 'mexp_' ::=
-  | X i                   ::  :: Var
+  | X i                         ::  :: Var
       {{ tex {[[X]]}_{[[i]]} }}
-  | Ev . X                ::  :: Proj
-  | struct D              ::  :: Struct
-  | functor P -> E        ::  :: Functor
-      {{ tex \ottkw{functor} \, [[P]] \rightarrow [[E]] }}
-  | E R                   ::  :: Apply
-  | E : T                 ::  :: Ascription
-  | E Z                   :: M:: Subst
-  | ( E )                 :: S:: Paren
+  | Ev . X                      ::  :: Proj
+  | struct D                    ::  :: Struct
+  | functor ( m X i : T ) -> E  ::  :: Functor
+      {{ tex \ottkw{functor} \, (_{[[m]]} {[[X]]}_{[[i]]} : [[T]] ) \rightarrow [[E]] }}
+  | E ( m Ev )                  ::  :: Apply
+      {{ tex [[E]] (_{[[m]]} [[Ev]] ) }}
+  | E : T                       ::  :: Ascription
+  | E Z                         :: M:: Subst
+  | ( E )                       :: S:: Paren
 
 type_params, as :: 'tparam_' ::=
   | empty                 ::  :: Nil
@@ -170,15 +162,16 @@ module_kind_values, Kv {{ tex {K_v} }} :: 'mknd_val_' ::=
   | Kv Z                  :: M:: Subst
 
 module_expression_values, Ev {{ tex {E_v} }} :: 'mexp_val_' ::=
-  | X i                   ::  :: Var
+  | X i                          ::  :: Var
       {{ tex {[[X]]}_{[[i]]} }}
-  | Ev . X                ::  :: Proj
-  | struct Dv             ::  :: Struct
-  | functor P -> Ev       ::  :: Functor
-      {{ tex \ottkw{functor} \, [[P]] \rightarrow [[Ev]] }}
-  | Ev R                  ::  :: Apply
-  | Ev Z                  :: M:: Subst
-  | ( Ev )                :: S:: Paren
+  | Ev . X                       ::  :: Proj
+  | struct Dv                    ::  :: Struct
+  | functor ( m X i : T ) -> Ev  ::  :: Functor
+      {{ tex \ottkw{functor} \, (_{[[m]]} {[[X]]}_{[[i]]} : [[T]] ) \rightarrow [[Ev]] }}
+  | Ev ( m Ev' )                 ::  :: Apply
+      {{ tex [[Ev]] (_{[[m]]} [[Ev']] ) }}
+  | Ev Z                         :: M:: Subst
+  | ( Ev )                       :: S:: Paren
 
 kind_values, kv {{ tex {k_v} }} :: 'knd_val_' ::=
   | = t : k               ::  :: Singleton
@@ -196,8 +189,6 @@ substitution, Z {{ tex \sigma }} :: 'sub_' ::=
      {{ tex [ {[[X]]}_{[[i]]} \mapsto [[Ev]] ] }}
   | [ SI => SI' ]         :: M:: SigItem
      {{ tex [ [[SI]] \mapsto [[SI']] ] }}
-  | [ P => R ]            :: M:: Parameter
-     {{ tex [ [[P]] \mapsto [[R]] ] }}
 
 context, G {{ tex \Gamma }} :: 'ctx_' ::=
   | empty                 ::   :: Empty
@@ -212,7 +203,6 @@ context, G {{ tex \Gamma }} :: 'ctx_' ::=
      {{ tex [[G]] , \, {[[X]]}_{[[i]]} : [[T]] }}
   | G , SI                :: M:: SigItem 
   | G , S                 :: M:: Signature
-  | G , P                 :: M:: Parameter 
 
 formula :: formula_ ::=  
   | judgement             ::   :: judgement
@@ -369,23 +359,16 @@ Typing :: '' ::=
      G |- SI S :- max(l, l')
 
   defn
-  G |- P :- l :: :: param :: 'param_' by
-
-     G |- T :- l
-    ----------------------- :: parameter
-     G |- ( X i : m T ) :- l
-
-  defn
   G |- T :- K :: :: mtyp :: 'mtyp_' by
 
      G |- S :- l
     ----------------------- :: signature
      G |- sig S :- succ(l)
 
-     G |- P :- l
-     G, P |- T :- l'
-    ----------------------------------- :: functor
-     G |- functor P -> T :- max(l, l')
+     G |- T :- l
+     G, X i : T |- T :- l'
+    ----------------------------------------------- :: functor
+     G |- functor ( m X i : T ) -> T :- max(l, l')
 
      A i : K in G
     --------------- :: var
@@ -456,13 +439,6 @@ Typing :: '' ::=
      G |- DI D :- SI S
 
   defn
-  G |- R :- P :: :: arg :: 'arg_' by
-
-     G |- Ev :- T
-    ------------------------------- :: param
-     G |- m Ev :- ( X i : m T )
-
-  defn
   G |- E :- T :: :: mexpr :: 'mexpr_' by
 
      X i : T in G
@@ -477,15 +453,15 @@ Typing :: '' ::=
     ------------------------ :: structure
      G |- struct D :- sig S
 
-     G |- P :- l
-     G , P |- E :- T
-    --------------------------------------- :: functor
-     G |- functor P -> E :- functor P -> T
+     G |- T :- l
+     G , X i : T |- E :- T
+    --------------------------------------------------------------- :: functor
+     G |- functor ( m X i : T ) -> E :- functor ( m X i : T ) -> T
 
-     G |- E :- functor P -> T
-     G |- R :- P
-    -------------------------- :: apply
-     G |- E R :- T [ P => R ]
+     G |- E :- functor ( m X i : T ) -> T'
+     G |- Ev :- T
+    ------------------------------------- :: apply
+     G |- E ( m Ev ) :- T' [ X i => Ev ]
 
      G |- E :- T
     ----------------- :: ascripe
@@ -621,17 +597,6 @@ Typing :: '' ::=
      G |- S1 < SI2 S2 :- max(l, l')
 
   defn
-  G |- P < P' :- l :: :: sub_param :: 'sub_param_' by
-
-     G |- P1 == P2 :- l
-    -------------------- :: refl
-     G |- P1 < P2 :- l
-
-     G |- T1 < T2 :- l
-    ------------------------------------------ :: param
-     G |- ( X i : m T1 ) < ( X i : m T2 ) :- l
-
-  defn
   G |- T < T' :- K :: :: sub_mtyp :: 'sub_mtyp_' by
 
      G |- T1 == T2 :- K
@@ -647,10 +612,10 @@ Typing :: '' ::=
     --------------------------------- :: signature
      G |- sig S1 < sig S2 :- succ(l)
 
-     G |- P2 < P1 :- l
-     G, P2 |- T1 [P1 => P2] < T2 :- l'
-    -------------------------------------------------------- :: functor
-     G |- functor P1 -> T1 < functor P2 -> T2 :- max(l, l')
+     G |- T2 < T1 :- l
+     G, X i : T2 |- T'1 < T'2 :- l'
+    ---------------------------------------------------------------------------------- :: functor
+     G |- functor ( m X i : T1 ) -> T'1 < functor ( m X i : T2 ) -> T'2 :- max(l, l')
 
      G |- Ev1 == Ev2 :- T1
      G |- T1 < T2 :- K
@@ -752,13 +717,6 @@ Typing :: '' ::=
      G |- SI1 S1 == SI2 S2 :- max(l, l')
 
   defn
-  G |- P == P' :- l :: :: equal_param :: 'eql_param_' by
-
-     G |- T1 == T2 :- l
-    ----------------------------------------------- :: param
-     G |- ( X1 i1 : m T1 ) == ( X2 i2 : m T2 ) :- l
-
-  defn
   G |- T == T' :- K :: :: equal_mtyp :: 'eql_mtyp_' by
 
      G |- T1 :- = T2 : K
@@ -774,10 +732,10 @@ Typing :: '' ::=
     ---------------------------------- :: signature
      G |- sig S1 == sig S2 :- succ(l)
 
-     G |- P1 == P2 :- l
-     G, P2 |- T1 [P1 => P2] == T2 :- l'
-    --------------------------------------------------------- :: functor
-     G |- functor P1 -> T1 == functor P2 -> T2 :- max(l, l')
+     G |- T1 == T2 :- l
+     G, X2 i2 : T2 |- T'1 [X1 i1 => X2 i2] == T'2 :- l'
+    --------------------------------------------------------------------------------------- :: functor
+     G |- functor ( m X1 i1 : T1 ) -> T'1 == functor ( m X2 i2 : T2 ) -> T'2 :- max(l, l')
 
      G |- Ev1 == Ev2 :- sig module type A i : K end
     ------------------------------------------------ :: proj
@@ -819,13 +777,6 @@ Typing :: '' ::=
      G, SI |- Dv1 == Dv2 :- Sv
     ------------------------------------- :: cons
      G |- DIv1 Dv1 == DIv2 Dv2 :- SIv Sv
-
-  defn
-  G |- R == R' :- P :: :: equal_arg :: 'eql_arg_' by
-
-     G |- Ev1 == Ev2 :- T
-    --------------------------------------- :: param
-     G |- m Ev1 == m Ev2 :- ( X i : m T )
 
   defn
   G |- Dv projects X at Ev : T :: :: project_module :: 'proj_mod_' by
@@ -870,24 +821,24 @@ Typing :: '' ::=
     ----------------------------------------- :: structure
      G |- struct Dv1 == struct Dv2 :- sig Sv
 
-     G |- P1 == P2 :- l
-     G , P1 |- Ev1 == Ev2 :- T
-    ---------------------------------------------------------------- :: functor
-     G |- functor P1 -> Ev1 == functor P2 -> Ev2 :- functor P1 -> T
+     G |- T1 == T2 :- l
+     G , X1 i1 : T1 |- Ev1 == Ev2 [X2 i2 => X1 i1] :- T'
+    ----------------------------------------------------------------------------------------------------------- :: functor
+     G |- functor ( m X1 i1 : T1 ) -> Ev1 == functor ( m X2 i2 : T2 ) -> Ev2 :- functor ( m X1 i1 : T1 ) -> T'
 
-     G |- Ev1 == Ev2 :- functor P -> T
-     G |- R1 == R2 :- P
-    ---------------------------------------- :: apply
-     G |- Ev1 R1 == Ev2 R2 :- T [ P => R1 ]
+     G |- Ev1 == Ev2 :- functor ( m X i : T ) -> T'
+     G |- Ev'1 == Ev'2 :- T
+    ------------------------------------------------------------- :: apply
+     G |- Ev1 ( m Ev'1 ) == Ev2 ( m Ev'2 ) :- T' [ X i => Ev'1 ]
 
-     G , P |- Ev :- T
-     G |- R :- P
-    ----------------------------------------------------------- :: apply_beta
-     G |- (functor P -> Ev) R == Ev [ P => R ] :- T [ P => R ]
+     G , X i : T |- Ev :- T'
+     G |- Ev' :- T
+    ---------------------------------------------------------------------------------------- :: apply_beta
+     G |- (functor ( m X i : T ) -> Ev) ( m Ev' ) == Ev [ X i => Ev' ] :- T' [ X i => Ev' ]
 
-     G |- Ev :- functor P -> T
-    -------------------------------------------------- :: functor_eta
-     G |- Ev == functor P -> (Ev P) :- functor P -> T
+     G |- Ev :- functor ( m X i : T ) -> T'
+    -------------------------------------------------------------------------------- :: functor_eta
+     G |- Ev == functor ( m X i : T ) -> (Ev(m X i)) :- functor ( m X i : T ) -> T'
 
      G |- Dv projects X at Ev : T
     ------------------------------- :: proj_beta
