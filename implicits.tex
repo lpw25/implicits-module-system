@@ -1,0 +1,32 @@
+\documentclass{article}
+\usepackage{supertabular}
+\usepackage{bm}
+\usepackage{mathpartir}
+\usepackage{amsmath,amssymb}
+\usepackage{supertabular}
+\usepackage{geometry}
+\usepackage{ifthen}
+\usepackage{alltt}%hack
+\geometry{a4paper,dvips,twoside,left=22.5mm,right=22.5mm,top=20mm,bottom=30mm}
+\usepackage{color}
+
+\input{implicits-gen.tex}
+
+\renewcommand{\ottusedrule}[1]{#1 \and}
+\renewenvironment{ottdefnblock}[3][]
+  { \framebox{ \mbox{#2} } \quad \begin{mathpar}#3 }
+  { \end{mathpar} }
+
+\title{Modular implicits}
+\author{Leo White}
+\date{}
+\begin{document}
+\maketitle
+\section{Grammer}
+\subsection{Meta-variables}
+\ottmetavars
+\subsection{Productions}
+\ottgrammar
+\section{Typing judgements}
+\ottdefnsTyping
+\end{document}
