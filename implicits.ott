@@ -197,16 +197,15 @@ context, G {{ tex \Gamma }} :: 'ctx_' ::=
 
 formula :: formula_ ::=  
   | judgement             ::   :: judgement
-  | a i : ( as ) k in G   ::   :: type_in
-      {{ tex {[[a]]}_{[[i]]} : ( [[as]] ) \, [[k]] \in [[G]] }}
-  | x i : t in G          ::   :: value_in
-      {{ tex {[[x]]}_{[[i]]} : [[t]] \in [[G]] }}
-  | A i : K in G          ::   :: modtype_in
-      {{ tex {[[A]]}_{[[i]]} : [[K]] \in [[G]] }}
-  | X i : T in G          ::   :: module_in
-      {{ tex {[[X]]}_{[[i]]} : [[T]] \in [[G]] }}
+  | G ( a i ) = ( as ) k  ::   :: type_in
+      {{ tex [[G]] ( {[[a]]}_{[[i]]} ) = ( [[as]] ) \, [[k]] }}
+  | G ( x i ) = t         ::   :: value_in
+      {{ tex [[G]] ( {[[x]]}_{[[i]]} ) = [[t]] }}
+  | G ( A i ) = K         ::   :: modtype_in
+      {{ tex [[G]] ( {[[A]]}_{[[i]]} ) = [[K]] }}
+  | G ( X i ) = T         ::   :: module_in
+      {{ tex [[G]] ( {[[X]]}_{[[i]]} ) = [[T]] }}
   | SI notin S            ::   :: sig_item_not_in
-  | i notin G             ::   :: internal_not_in
 
 terminals :: 'terminals_' ::=
   | notin                 ::  :: notin       {{ tex \notin }}
@@ -235,22 +234,18 @@ Typing :: '' ::=
     ---------- :: empty
      |- empty
 
-     i notin G
      G, as |- k
     --------------------- :: type
      |- G , a i : (as) k
 
-     i notin G
      G |- t :- ?
     ---------------- :: value
      |- G , x i : t
 
-     i notin G
      G |- K
     ---------------- :: modtype
      |- G , A i : K
 
-     i notin G
      G |- T :- K
     ---------------- :: module
      |- G , X i : T
@@ -280,7 +275,7 @@ Typing :: '' ::=
   defn
   G |- t :- k :: :: typ :: 'typ_' by
 
-     a i : (as) k in G
+     G ( a i ) = (as) k
      G |- ts :- as
     --------------------------------- :: var
      G |- (ts) a i :- k [ as => ts ]
@@ -361,7 +356,7 @@ Typing :: '' ::=
     ----------------------------------------------- :: functor
      G |- functor ( m X i : T ) -> T :- max(l, l')
 
-     A i : K in G
+     G ( A i ) = K
     --------------- :: var
      G |- A i :- K
 
@@ -386,7 +381,7 @@ Typing :: '' ::=
   defn
   G |- e :- t :: :: expr :: 'expr_' by
 
-     x i : t in G
+     G ( x i ) = t
     --------------- :: var
      G |- x i :- t
 
@@ -432,7 +427,7 @@ Typing :: '' ::=
   defn
   G |- E :- T :: :: mexpr :: 'mexpr_' by
 
-     X i : T in G
+     G ( X i ) = T
     --------------- :: var
      G |- X i :- T
 
